@@ -29,6 +29,7 @@ and Yao Chong Lim on work on the CE-CLM model.
 ## WIKI
 
 **For instructions of how to install/compile/use the project please see [WIKI](https://github.com/TadasBaltrusaitis/OpenFace/wiki)**
+If using CUDA 10.1, install CMake > 3.14, otherwise dlib won't compile
 
 ## Functionality
 

@@ -9,6 +9,8 @@ set(CMAKE_CONFIG_DIR etc/OpenFace)
 set(CONFIG_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_CONFIG_DIR}")
 add_definitions(-DCONFIG_DIR="${CONFIG_DIR}")
 
+option(BUILD_PYTHON "Build OpenFace python bindings.")
+
 # make sure we'll use OpenBLAS only: there's a header file naming difference between different
 # implementations; so OpenFace wants OpenBLAS;
 find_package(OpenBLAS REQUIRED)
@@ -144,17 +146,22 @@ else ()
 endif ()
 
 # dlib
-find_package(dlib 19.13)
-if(${dlib_FOUND})
-    message("dlib information:")
-    message("  dlib version: ${dlib_VERSION}")
+#find_package(dlib 19.13)
+#if(${dlib_FOUND})
+#    message("dlib information:")
+#    message("  dlib version: ${dlib_VERSION}")
+#
+#    if (NOT TARGET dlib)
+#        add_library(dlib INTERFACE IMPORTED GLOBAL)
+#    endif()
+#else()
+#    message(FATAL_ERROR "dlib not found in the system, please install dlib")
+#endif()
 
-    if (NOT TARGET dlib)
-        add_library(dlib INTERFACE IMPORTED GLOBAL)
-    endif()
-else()
-    message(FATAL_ERROR "dlib not found in the system, please install dlib")
-endif()
+option(CUDA_TOOLKIT_ROOT_DIR  "Path to CUDA. Avoid CUDA 10.1")
+set(CMAKE_POSITION_INDEPENDENT_CODE True)
+add_subdirectory(3rdParty/dlib-19.13)
+
 
 # suppress auto_ptr deprecation warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -244,3 +251,12 @@ add_subdirectory(exe/FaceLandmarkImg)
 add_subdirectory(exe/FaceLandmarkVid)
 add_subdirectory(exe/FaceLandmarkVidMulti)
 add_subdirectory(exe/FeatureExtraction)
+
+if(BUILD_PYTHON)
+    add_subdirectory(3rdParty/pybind11)
+    add_subdirectory(python)
+endif(BUILD_PYTHON)
+
+    
+
+

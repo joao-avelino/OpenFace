@@ -1,4 +1,4 @@
-cd lib/local/LandmarkDetector/model/patch_experts
+cd build/bin/model/patch_experts
 
 wget https://www.dropbox.com/s/7na5qsjzz8yfoer/cen_patches_0.25_of.dat
 if [ $? -ne 0 ]
