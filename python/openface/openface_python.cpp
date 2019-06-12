@@ -5,9 +5,12 @@
 #include <GazeEstimation.h>
 #include <RecorderOpenFace.h>
 #include <RecorderOpenFaceParameters.h>
+#include <SequenceCapture.h>
+#include <Visualizer.h>
+#include <VisualizationUtils.h>
 #include "opencv2/objdetect.hpp"
 #include <dlib/image_processing/frontal_face_detector.h>
-
+#include <ImageCapture.h>
 //Convert
 #include <pybind11/stl.h>
 #include "util/conversions.h"
@@ -15,7 +18,9 @@
 
 namespace py = pybind11;
 using namespace LandmarkDetector;
-
+using namespace FaceAnalysis;
+using namespace GazeAnalysis;
+using namespace Utilities;
 
 cv::Mat read_image(std::string image_name)
 {
@@ -26,6 +31,17 @@ cv::Mat read_image(std::string image_name)
 void receiveVec6f(cv::Vec6f v)
 {
   std::cout << "Point: " << v << std::endl;
+}
+
+
+cv::Scalar test_scalar(cv::Scalar s)
+{
+    return s;
+}
+
+cv::Point3f test_point3f(cv::Point3f p)
+{
+    return p;
 }
 
 cv::Vec6f sendVec6f()
@@ -43,6 +59,8 @@ PYBIND11_MODULE(pyopenface, m){
     
     m.def("read_image", &read_image, "A function that read an image", py::arg("image"));
     m.def("receiveVec6f", &receiveVec6f);
+    m.def("test_scalar", &test_scalar);
+    m.def("test_point3f", &test_point3f);
     m.def("sendVec6f", &sendVec6f);
 
 
@@ -240,7 +258,130 @@ PYBIND11_MODULE(pyopenface, m){
     m.def("GetPose", &GetPose);
     m.def("GetPoseWRTCamera", &GetPoseWRTCamera);
 
+    //FaceAnalysis::FaceAnalyserParameters
+
+    py::class_<FaceAnalyserParameters>(m, "FaceAnalyserParameters")
+        .def(py::init<>())
+        .def(py::init<std::string>())
+        .def(py::init<std::vector<std::string> &>())
+        .def("setAlignedOutput", &FaceAnalyserParameters::setAlignedOutput)
+        .def("OptimizeForVideos", &FaceAnalyserParameters::OptimizeForVideos)
+        .def("OptimizeForImages", &FaceAnalyserParameters::OptimizeForImages)
+        .def("getAlignMask", &FaceAnalyserParameters::getAlignMask)
+        .def("getSimScaleOut", &FaceAnalyserParameters::getSimScaleOut)
+        .def("getSimSizeOut", &FaceAnalyserParameters::getSimSizeOut)
+        .def("getDynamic", &FaceAnalyserParameters::getDynamic)
+        .def("getModelLoc", &FaceAnalyserParameters::getModelLoc)
+        .def("getOrientationBins", &FaceAnalyserParameters::getOrientationBins)
+        .def("setAlignedOutput", &FaceAnalyserParameters::setAlignedOutput)
+        .def_readwrite("grayscale", &FaceAnalyserParameters::grayscale);
 
 
+    //FaceAnalysis::FaceAnalyser
+    py::class_<FaceAnalyser> face_analyser(m, "FaceAnalyser");
+    py::enum_<FaceAnalyser::RegressorType>(face_analyser, "RegressorType")
+        .value("SVR_appearance_static_linear", FaceAnalyser::SVR_appearance_static_linear)
+        .value("SVR_appearance_dynamic_linear", FaceAnalyser::SVR_appearance_dynamic_linear)
+        .value("SVR_dynamic_geom_linear", FaceAnalyser::SVR_dynamic_geom_linear)
+        .value("SVR_combined_linear", FaceAnalyser::SVR_combined_linear)
+        .value("SVM_linear_stat", FaceAnalyser::SVM_linear_stat)
+        .value("SVM_linear_dyn", FaceAnalyser::SVR_combined_linear)
+        .value("SVR_linear_static_seg", FaceAnalyser::SVR_linear_static_seg)
+        .value("SVR_linear_dynamic_seg", FaceAnalyser::SVR_linear_dynamic_seg)
+        .export_values();
 
+    face_analyser.def(py::init<FaceAnalyserParameters &>())
+        .def("AddNextFrame", &FaceAnalyser::AddNextFrame)
+        .def("GetCurrentTimeSeconds", &FaceAnalyser::AddNextFrame)
+        .def("GetCurrentAUsClass", &FaceAnalyser::AddNextFrame)
+        .def("GetCurrentAUsReg", &FaceAnalyser::AddNextFrame)
+        .def("PredictStaticAUsAndComputeFeatures", &FaceAnalyser::AddNextFrame)
+        .def("Reset", &FaceAnalyser::AddNextFrame)
+        .def("GetLatestHOG", &FaceAnalyser::AddNextFrame)
+        .def("GetLatestNeutralHOG", &FaceAnalyser::AddNextFrame)
+        .def("GetTriangulation", &FaceAnalyser::AddNextFrame)
+        .def("GetGeomDescriptor", &FaceAnalyser::AddNextFrame)
+        .def("GetAUClassNames", &FaceAnalyser::AddNextFrame)
+        .def("GetAURegNames", &FaceAnalyser::AddNextFrame)
+        .def("GetDynamicAUClass", &FaceAnalyser::AddNextFrame)
+        .def("GetDynamicAUReg", &FaceAnalyser::AddNextFrame)
+        .def("ExtractAllPredictionsOfflineReg", &FaceAnalyser::AddNextFrame)
+        .def("ExtractAllPredictionsOfflineClass", &FaceAnalyser::AddNextFrame)
+        .def("PostprocessOutputFile", &FaceAnalyser::AddNextFrame)
+        .def("GetCurrentAUsCombined", &FaceAnalyser::AddNextFrame)
+        .def("GetLatestAlignedFace", &FaceAnalyser::AddNextFrame);
+    
+    m.def("EstimateGaze", &EstimateGaze);
+    m.def("GetGazeAngle", &GetGazeAngle);
+    m.def("GetPupilPosition", &GetPupilPosition);
+
+    //Utilities::SequenceCapture
+    py::class_<SequenceCapture>(m, "SequenceCapture")
+        .def(py::init<>())
+        .def("Open", &SequenceCapture::Open)
+        .def("OpenWebcam", &SequenceCapture::OpenWebcam)
+        .def("OpenImageSequence", &SequenceCapture::OpenImageSequence)
+        .def("OpenVideoFile", &SequenceCapture::OpenVideoFile)
+        .def("IsWebcam", &SequenceCapture::IsWebcam)
+        .def("GetNextFrame", &SequenceCapture::GetNextFrame)
+        .def("GetGrayFrame", &SequenceCapture::GetGrayFrame)
+        .def("GetProgress", &SequenceCapture::GetProgress)
+        .def("GetFrameNumber", &SequenceCapture::GetFrameNumber)
+        .def("IsOpened", &SequenceCapture::IsOpened)
+        .def("Close", &SequenceCapture::Close)
+        .def_readwrite("frame_width", &SequenceCapture::frame_width)
+        .def_readwrite("frame_height", &SequenceCapture::frame_height)
+        .def_readwrite("fx", &SequenceCapture::fx)
+        .def_readwrite("fy", &SequenceCapture::fy)
+        .def_readwrite("cx", &SequenceCapture::cx)
+        .def_readwrite("cy", &SequenceCapture::cy)
+        .def_readwrite("fps", &SequenceCapture::fps)
+        .def_readwrite("time_stamp", &SequenceCapture::time_stamp)
+        .def_readwrite("name", &SequenceCapture::name)
+        .def_readwrite("no_input_specified", &SequenceCapture::no_input_specified);
+        
+    //Utilities::ImageCapture
+    py::class_<ImageCapture>(m, "ImageCapture")
+        .def(py::init<>())
+        .def("Open", &ImageCapture::Open)
+        .def("OpenDirectory", &ImageCapture::OpenDirectory)
+        .def("OpenImageFiles", &ImageCapture::OpenImageFiles)
+        .def("GetNextImage", &ImageCapture::GetNextImage)
+        .def("GetGrayFrame", &ImageCapture::GetGrayFrame)
+        .def("GetBoundingBoxes", &ImageCapture::GetBoundingBoxes)
+        .def("GetProgress", &ImageCapture::GetProgress)
+        .def_readwrite("image_width", &ImageCapture::image_width)
+        .def_readwrite("image_height", &ImageCapture::image_height)
+        .def_readwrite("fx", &ImageCapture::fx)
+        .def_readwrite("fy", &ImageCapture::fy)
+        .def_readwrite("cx", &ImageCapture::cx)
+        .def_readwrite("cy", &ImageCapture::cy)
+        .def_readwrite("name", &ImageCapture::name)
+        .def_readwrite("has_bounding_boxes", &ImageCapture::has_bounding_boxes);
+    
+    //Utilities::Visualizer
+    py::class_<Visualizer>(m, "Visualizer")
+        .def(py::init<std::vector<std::string>>())
+        .def(py::init<bool, bool, bool, bool>())
+        .def("SetImage", &Visualizer::SetImage)
+        .def("SetObservationLandmarks", &Visualizer::SetObservationLandmarks)
+        .def("SetObservationPose", &Visualizer::SetObservationPose)
+        .def("SetObservationActionUnits", &Visualizer::SetObservationActionUnits)
+        .def("SetObservationGaze", &Visualizer::SetObservationGaze)
+        .def("SetObservationFaceAlign", &Visualizer::SetObservationFaceAlign)
+        .def("SetObservationHOG", &Visualizer::SetObservationHOG)
+        .def("SetFps", &Visualizer::SetFps)
+        .def("ShowObservation", &Visualizer::ShowObservation)
+        .def("GetVisImage", &Visualizer::GetVisImage)
+        .def("GetHOGVis", &Visualizer::GetHOGVis)
+        .def_readwrite("vis_track", &Visualizer::vis_track)
+        .def_readwrite("vis_hog", &Visualizer::vis_hog)
+        .def_readwrite("vis_align", &Visualizer::vis_align)
+        .def_readwrite("vis_aus", &Visualizer::vis_aus)
+        .def_readwrite("visualisation_boundary", &Visualizer::visualisation_boundary);
+
+    //Utilities::VisualizationUtils
+    m.def("DrawBox", (void (*)(cv::Mat, cv::Vec6f, cv::Scalar, int, float, float, float, float)) &DrawBox);
+    m.def("DrawBox", (void (*)(const std::vector<std::pair<cv::Point2f, cv::Point2f>>&, cv::Mat, cv::Scalar, int)) &DrawBox);
+    
 }

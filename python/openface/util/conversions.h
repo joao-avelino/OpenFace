@@ -187,6 +187,63 @@ public:
     }
 };
 
+template <> struct type_caster<cv::Point2f> {
+public:
+    
+    PYBIND11_TYPE_CASTER(cv::Point2f, _("cvpoint2f"));
+    
+    //From python to c++
+    bool load(handle src, bool) {
+        PyObject *obj = src.ptr();
+
+        if(!obj || obj == Py_None)
+            return false;
+        
+        double x, y; 
+        bool test = PyArg_ParseTuple(obj, "dd", &x, &y) > 0;
+        value.x = x;
+        value.y = y;
+
+
+        return test;
+    }
+    
+    //From c++ to python 
+    static handle cast(const cv::Point2f &p, return_value_policy, handle defval) {
+        
+        return Py_BuildValue("(dd)", double(p.x), double(p.y));
+    }
+};
+
+template <> struct type_caster<cv::Point3f> {
+public:
+    
+    PYBIND11_TYPE_CASTER(cv::Point3f, _("cvpoint3f"));
+    
+    //From python to c++
+    bool load(handle src, bool) {
+        PyObject *obj = src.ptr();
+
+        if(!obj || obj == Py_None)
+            return false;
+        
+        double x, y, z; 
+        bool test = PyArg_ParseTuple(obj, "ddd", &x, &y, &z) > 0;
+        value.x = x;
+        value.y = y;
+        value.z = z;
+
+
+        return test;
+    }
+    
+    //From c++ to python 
+    static handle cast(const cv::Point3f &p, return_value_policy, handle defval) {
+        
+        return Py_BuildValue("(ddd)", double(p.x), double(p.y), double(p.z));
+    }
+};
+
 //cv::Vec6f conversion
 template <> struct type_caster<cv::Vec6f> {
 public:
@@ -223,6 +280,102 @@ public:
         return Py_BuildValue("(dddddd)", double(v[0]),double(v[1]), double(v[2]),double(v[3]),double(v[4]),double(v[5]));
     }
 };
+
+template <> struct type_caster<cv::Vec3d> {
+public:
+    
+    PYBIND11_TYPE_CASTER(cv::Vec3d, _("cvvec3d"));
+    
+    //From python to c++
+    bool load(handle src, bool) {
+        PyObject *obj = src.ptr();
+
+        if(!obj || obj == Py_None)
+            return false;
+        
+        double v[3];
+        bool test = PyArg_ParseTuple(obj, "ddd", &v[0], &v[1], &v[2]) > 0;
+
+        cv::Vec3d out(v[0], v[1], v[2]);
+
+        value[0] = v[0];
+        value[1] = v[1];
+        value[2] = v[2];
+
+        return true;
+    }
+    
+    //From c++ to python 
+    static handle cast(const cv::Vec3d &v, return_value_policy, handle defval) {
+        
+        return Py_BuildValue("(ddd)", double(v[0]),double(v[1]), double(v[2]));
+    }
+};
+
+
+template <> struct type_caster<cv::Vec2f> {
+public:
+    
+    PYBIND11_TYPE_CASTER(cv::Vec2f, _("cvvec2f"));
+    
+    //From python to c++
+    bool load(handle src, bool) {
+        PyObject *obj = src.ptr();
+
+        if(!obj || obj == Py_None)
+            return false;
+        
+        double v[2];
+        int test = PyArg_ParseTuple(obj, "dd", &v[0], &v[1]);
+
+        cv::Vec2f out(v[0], v[1]);
+
+        value[0] = v[0];
+        value[1] = v[1];
+
+        return true;
+    }
+    
+    //From c++ to python 
+    static handle cast(const cv::Vec2f &v, return_value_policy, handle defval) {
+        
+        return Py_BuildValue("(dd)", double(v[0]),double(v[1]));
+    }
+};
+
+//cv::Scalar
+template <> struct type_caster<cv::Scalar> {
+public:
+    
+    PYBIND11_TYPE_CASTER(cv::Scalar, _("cvscalar"));
+    
+    //From python to c++
+    bool load(handle src, bool) {
+        PyObject *obj = src.ptr();
+
+        if(!obj || obj == Py_None)
+            return false;
+        
+        int v[3];
+        int test = PyArg_ParseTuple(obj, "iii", &v[0], &v[1], &v[2]);
+
+        cv::Scalar out(v[0], v[1], v[2]);
+
+        value[0] = v[0];
+        value[1] = v[1];
+        value[2] = v[2];
+
+        return true;
+    }
+    
+    //From c++ to python 
+    static handle cast(const cv::Scalar &v, return_value_policy, handle defval) {
+        
+        return Py_BuildValue("(iii)", int(v[0]), int(v[1]), int(v[2]));
+    }
+};
+
+
 
 }} // namespace pybind11::detail
 
