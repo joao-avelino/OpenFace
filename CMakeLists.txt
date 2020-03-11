@@ -146,21 +146,21 @@ else ()
 endif ()
 
 # dlib
-#find_package(dlib 19.13)
-#if(${dlib_FOUND})
-#    message("dlib information:")
-#    message("  dlib version: ${dlib_VERSION}")
-#
-#    if (NOT TARGET dlib)
-#        add_library(dlib INTERFACE IMPORTED GLOBAL)
-#    endif()
-#else()
-#    message(FATAL_ERROR "dlib not found in the system, please install dlib")
-#endif()
+find_package(dlib 19.13)
+if(${dlib_FOUND})
+    message("dlib information:")
+    message("  dlib version: ${dlib_VERSION}")
+
+    if (NOT TARGET dlib)
+        add_library(dlib INTERFACE IMPORTED GLOBAL)
+    endif()
+else()
+    message(FATAL_ERROR "dlib not found in the system, please install dlib")
+endif()
 
 option(CUDA_TOOLKIT_ROOT_DIR  "Path to CUDA. Avoid CUDA 10.1")
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
-add_subdirectory(3rdParty/dlib-19.13)
+#add_subdirectory(3rdParty/dlib-19.13)
 
 
 # suppress auto_ptr deprecation warnings
@@ -253,7 +253,7 @@ add_subdirectory(exe/FaceLandmarkVidMulti)
 add_subdirectory(exe/FeatureExtraction)
 
 if(BUILD_PYTHON)
-    add_subdirectory(3rdParty/pybind11)
+    find_package(pybind11)
     add_subdirectory(python)
 endif(BUILD_PYTHON)
 
