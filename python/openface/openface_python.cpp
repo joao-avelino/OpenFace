@@ -316,7 +316,7 @@ PYBIND11_MODULE(pyopenface, m){
 
 		    GazeAnalysis::EstimateGaze(clnf_model, gaze_abs, fx, fy, cx, cy, left_eye);
 
-		    return gaze_absolute;
+		    return gaze_abs;
 		    }, "Returns a 3d gaze vector");
     m.def("GetGazeAngle", &GetGazeAngle);
     m.def("GetPupilPosition", &GetPupilPosition);
