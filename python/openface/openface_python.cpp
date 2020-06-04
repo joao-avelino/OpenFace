@@ -311,7 +311,13 @@ PYBIND11_MODULE(pyopenface, m){
         .def("GetCurrentAUsCombined", &FaceAnalyser::AddNextFrame)
         .def("GetLatestAlignedFace", &FaceAnalyser::AddNextFrame);
     
-    m.def("EstimateGaze", &EstimateGaze);
+    m.def("EstimateGaze", [](LandmarkDetector::CLNF clnf_model, cv::Point3f gaze_absolute, float fx, float fy, float cx, float cy, bool left_eye){
+		    cv::Point3f gaze_abs = gaze_absolute;
+
+		    GazeAnalysis::EstimateGaze(clnf_model, gaze_abs, fx, fy, cx, cy, left_eye);
+
+		    return gaze_absolute;
+		    }, "Returns a 3d gaze vector");
     m.def("GetGazeAngle", &GetGazeAngle);
     m.def("GetPupilPosition", &GetPupilPosition);
 
